@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type inputFile struct {
@@ -124,22 +125,20 @@ func processLine(headers, line []string) (map[string]string, error) {
 	return recordMap, nil
 }
 
-//func writeJSONFile(csvPath string, writerChannel <-chan map[string]string, done chan<- bool, pretty bool) {
-//
-//
-//
-//	_, err := jsonFile.WriteString("["+breakLine, )
-//
-//}
-//
-//func createStringWriter(csvPath string) func(string, bool) {
-//	jsonDir := filepath.Dir(csvPath)
-//	jsonName := fmt.Sprintf("%s.json", strings.TrimSuffix(filepath.Base(csvPath), ".csv"))
-//	jsonLocation := filepath.Join(jsonDir, jsonName)
-//
-//	jsonFile, err := os.Create(jsonLocation)
-//	if err != nil {
-//		fmt.Fprintf(os.Stderr, "error occured %v ", err)
-//		os.Exit(1)
-//	}
-//}
+func writeJSONFile(csvPath string, writerChannel <-chan map[string]string, done chan<- bool, pretty bool) {
+
+	_, err := jsonFile.WriteString("[" + breakLine)
+
+}
+
+func createStringWriter(csvPath string) func(string, bool) {
+	jsonDir := filepath.Dir(csvPath)
+	jsonName := fmt.Sprintf("%s.json", strings.TrimSuffix(filepath.Base(csvPath), ".csv"))
+	jsonLocation := filepath.Join(jsonDir, jsonName)
+
+	jsonFile, err := os.Create(jsonLocation)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error occured %v ", err)
+		os.Exit(1)
+	}
+}
