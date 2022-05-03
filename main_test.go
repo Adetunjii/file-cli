@@ -85,51 +85,51 @@ func TestCheckIfValidFile(t *testing.T) {
 	}
 }
 
-//func TestProcessCsvFile(t *testing.T) {
-//	expectedMapSlice := []map[string]string{
-//		{"id": "1", "name": "samuel", "age": "25", "email": "adetunjithomas1@gmail.com"},
-//	}
-//
-//	tests := []struct {
-//		name      string
-//		csvString string
-//		separator string
-//	}{
-//		{"Comma separator", "id,name,age,email\n1,samuel,25,adetunjithomas1@gmail.com", "comma"},
-//		{"Semicolon separator", "id;name;age;email\n1;samuel;25;adetunjithomas1@gmail.com", "semicolon"},
-//	}
-//
-//	for _, testCase := range tests {
-//		t.Run(testCase.name, func(t *testing.T) {
-//			tmpFile, err := os.CreateTemp("", "test*.csv")
-//			defer func(name string) {
-//				err := os.Remove(name)
-//				require.NoError(t, err)
-//			}(tmpFile.Name())
-//
-//			require.NoError(t, err)
-//
-//			_, err = tmpFile.WriteString(testCase.csvString)
-//
-//			// moves the tmpFile from memory to disk
-//			err = tmpFile.Sync()
-//			require.NoError(t, err)
-//
-//			testFileData := inputFile{
-//				filePath:  tmpFile.Name(),
-//				pretty:    false,
-//				separator: testCase.separator,
-//			}
-//
-//			writerChannel := make(chan map[string]string)
-//
-//			go processCsvFile(testFileData, writerChannel)
-//
-//			for _, expectedMap := range expectedMapSlice {
-//				record := <-writerChannel
-//				require.Equal(t, expectedMap, record)
-//			}
-//		})
-//	}
-//
-//}
+func TestProcessCsvFile(t *testing.T) {
+	expectedMapSlice := []map[string]string{
+		{"id": "1", "name": "samuel", "age": "25", "email": "adetunjithomas1@gmail.com"},
+	}
+
+	tests := []struct {
+		name      string
+		csvString string
+		separator string
+	}{
+		{"Comma separator", "id,name,age,email\n1,samuel,25,adetunjithomas1@gmail.com", "comma"},
+		{"Semicolon separator", "id;name;age;email\n1;samuel;25;adetunjithomas1@gmail.com", "semicolon"},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			tmpFile, err := os.CreateTemp("", "test*.csv")
+			defer func(name string) {
+				err := os.Remove(name)
+				require.NoError(t, err)
+			}(tmpFile.Name())
+
+			require.NoError(t, err)
+
+			_, err = tmpFile.WriteString(testCase.csvString)
+
+			// moves the tmpFile from memory to disk
+			err = tmpFile.Sync()
+			require.NoError(t, err)
+
+			testFileData := inputFile{
+				filePath:  tmpFile.Name(),
+				pretty:    false,
+				separator: testCase.separator,
+			}
+
+			writerChannel := make(chan map[string]string)
+
+			go processCsvFile(testFileData, writerChannel)
+
+			for _, expectedMap := range expectedMapSlice {
+				record := <-writerChannel
+				require.Equal(t, expectedMap, record)
+			}
+		})
+	}
+
+}

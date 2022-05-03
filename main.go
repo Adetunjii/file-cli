@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/csv"
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 )
@@ -52,75 +54,75 @@ func checkIfValidFile(filename string) (bool, error) {
 	return true, nil
 }
 
-//func processCsvFile(fileData inputFile, writerChannel chan<- map[string]string) {
-//
-//	// open the file
-//	file, err := os.Open(fileData.filePath)
-//	if err != nil {
-//		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-//		os.Exit(1)
-//	}
-//
-//	// close the file when the function returns
-//	defer func() {
-//		err := file.Close()
-//		if err != nil {
-//			fmt.Fprintf(os.Stderr, "error %v\n", err)
-//			os.Exit(1)
-//		}
-//	}()
-//
-//	var headers, line []string
-//	reader := csv.NewReader(file)
-//
-//	// the default separator for csv is comma, so we change it semicolon is specified
-//	if fileData.separator == "semicolon" {
-//		reader.Comma = ';'
-//	}
-//
-//	// reading the file for the first time would fetch the header row
-//	headers, err = reader.Read()
-//	if err != nil {
-//		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-//		os.Exit(1)
-//	}
-//
-//	// keep fetching each row then send it to a writerChannel
-//	// the loop stops when we reach the end of the file
-//	for {
-//		line, err = reader.Read()
-//
-//		if err != nil {
-//			if err == io.EOF {
-//				close(writerChannel)
-//				break
-//			}
-//			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-//			os.Exit(1)
-//		}
-//
-//		record, err := processLine(headers, line)
-//		if err != nil {
-//			fmt.Printf("Line: %sError: %s\n", line, err)
-//			continue
-//		}
-//
-//		writerChannel <- record
-//	}
-//}
+func processCsvFile(fileData inputFile, writerChannel chan<- map[string]string) {
 
-//func processLine(headers, line []string) (map[string]string, error) {
-//	if len(line) != len(headers) {
-//		return nil, errors.New("line does not match header")
-//	}
-//
-//	recordMap := make(map[string]string)
-//
-//	for i, name := range headers {
-//		recordMap[name] = line[i]
-//	}
-//	return recordMap, nil
-//}
+	// open the file
+	file, err := os.Open(fileData.filePath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+
+	// close the file when the function returns
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error %v\n", err)
+			os.Exit(1)
+		}
+	}()
+
+	var headers, line []string
+	reader := csv.NewReader(file)
+
+	// the default separator for csv is comma, so we change it semicolon is specified
+	if fileData.separator == "semicolon" {
+		reader.Comma = ';'
+	}
+
+	// reading the file for the first time would fetch the header row
+	headers, err = reader.Read()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+
+	// keep fetching each row then send it to a writerChannel
+	// the loop stops when we reach the end of the file
+	for {
+		line, err = reader.Read()
+
+		if err != nil {
+			if err == io.EOF {
+				close(writerChannel)
+				break
+			}
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+
+		record, err := processLine(headers, line)
+		if err != nil {
+			fmt.Printf("Line: %sError: %s\n", line, err)
+			continue
+		}
+
+		writerChannel <- record
+	}
+}
+
+func processLine(headers, line []string) (map[string]string, error) {
+	if len(line) != len(headers) {
+		return nil, errors.New("line does not match header")
+	}
+
+	recordMap := make(map[string]string)
+
+	for i, name := range headers {
+		recordMap[name] = line[i]
+	}
+	return recordMap, nil
+}
 
 //func writeJSONFile(csvPath string, writerChannel <-chan map[string]string, done chan<- bool, pretty bool) {
 //
