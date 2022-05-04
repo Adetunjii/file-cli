@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -125,10 +126,32 @@ func processLine(headers, line []string) (map[string]string, error) {
 	return recordMap, nil
 }
 
-func writeJSONFile(csvPath string, writerChannel <-chan map[string]string, done chan<- bool, pretty bool) {
+func writeJSONFile(csvPath string, writerChannel <-chan map[string]string, done chan<- bool) {
+	writeString := createStringWriter(csvPath)
+	prettyJSON, lineBreak := beautifyJSON()
 
-	_, err := jsonFile.WriteString("[" + breakLine)
+	writeString("["+lineBreak, false)
+	first := true
 
+	for {
+		record, more := <-writerChannel
+		if more {
+
+			if !first {
+				writeString(","+lineBreak, false)
+			} else {
+				first = false
+			}
+
+			jsonData := prettyJSON(record)
+			writeString(jsonData, false)
+		} else {
+			writeString(lineBreak+"]", true)
+			fmt.Println("completed")
+			done <- true
+			break
+		}
+	}
 }
 
 func createStringWriter(csvPath string) func(string, bool) {
@@ -141,4 +164,30 @@ func createStringWriter(csvPath string) func(string, bool) {
 		fmt.Fprintf(os.Stderr, "error occured %v ", err)
 		os.Exit(1)
 	}
+
+	return func(data string, close bool) {
+		_, err := jsonFile.WriteString(data)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error occured %v ", err)
+			os.Exit(1)
+		}
+
+		if close {
+			err := jsonFile.Close()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "error occured %v ", err)
+				os.Exit(1)
+			}
+		}
+	}
+}
+
+func beautifyJSON() (func(map[string]string) string, string) {
+
+	lineBreak := "\n"
+	jsonFunc := func(record map[string]string) string {
+		jsonData, _ := json.MarshalIndent(record, "  ", "  ")
+		return "   " + string(jsonData)
+	}
+	return jsonFunc, lineBreak
 }

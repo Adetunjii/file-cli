@@ -4,6 +4,7 @@ import (
 	"flag"
 	"github.com/stretchr/testify/require"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -132,4 +133,45 @@ func TestProcessCsvFile(t *testing.T) {
 		})
 	}
 
+}
+
+func TestWriteJSONFile(t *testing.T) {
+	data := []map[string]string{
+		{"id": "1", "name": "samuel", "age": "25", "email": "adetunjithomas1@gmail.com"},
+	}
+
+	tests := []struct {
+		csvPath  string
+		jsonPath string
+		name     string
+	}{
+		{"test.csv", "test.json", "Pretty JSON"},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			writerChannel := make(chan map[string]string)
+			done := make(chan bool)
+
+			go func() {
+				for _, record := range data {
+					writerChannel <- record
+				}
+				close(writerChannel)
+			}()
+
+			go writeJSONFile(testCase.csvPath, writerChannel, done)
+			<-done
+
+			testOutput, err := os.ReadFile(testCase.jsonPath)
+			defer os.Remove(testCase.jsonPath)
+
+			require.NoError(t, err)
+
+			expectedOutput, err := os.ReadFile(filepath.Join("testJsonFiles", testCase.jsonPath))
+			require.NoError(t, err)
+			require.Equal(t, expectedOutput, testOutput)
+
+		})
+	}
 }
